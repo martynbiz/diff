@@ -1,4 +1,7 @@
-<?php
+<?php namespace MartynBiz\Diff\Renderer;
+
+use MartynBiz\Diff\Renderer;
+
 /**
  * "Inline" diff renderer.
  *
@@ -14,7 +17,7 @@
  */
 
 /** Text_Diff_Renderer */
-require_once 'Text/Diff/Renderer.php';
+// require_once 'Text/Diff/Renderer.php';
 
 /**
  * "Inline" diff renderer.
@@ -24,7 +27,7 @@ require_once 'Text/Diff/Renderer.php';
  * @author  Ciprian Popovici
  * @package Text_Diff
  */
-class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
+class Inline extends Renderer {
 
     /**
      * Number of leading context "lines" to preserve.
@@ -131,12 +134,12 @@ class Text_Diff_Renderer_inline extends Text_Diff_Renderer {
         /* We want to split on word boundaries, but we need to
          * preserve whitespace as well. Therefore we split on words,
          * but include all blocks of whitespace in the wordlist. */
-        $diff = new Text_Diff('native',
+        $diff = new \MartynBiz\Diff\Diff('native',
                               array($this->_splitOnWords($text1, $nl),
                                     $this->_splitOnWords($text2, $nl)));
 
         /* Get the diff in inline format. */
-        $renderer = new Text_Diff_Renderer_inline
+        $renderer = new Inline
             (array_merge($this->getParams(),
                          array('split_level' => 'words')));
 

@@ -1,4 +1,5 @@
-<?php
+<?php namespace MartynBiz\Diff\Engine;
+
 /**
  * Class used internally by Diff to actually compute the diffs.
  *
@@ -15,14 +16,15 @@
  * @author  Jon Parise <jon@horde.org>
  * @package Text_Diff
  */
-class Text_Diff_Engine_xdiff {
+
+class Xdiff {
 
     /**
      */
     function diff($from_lines, $to_lines)
     {
-        array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
-        array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+        array_walk($from_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
+        array_walk($to_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
 
         /* Convert the two input arrays into strings for xdiff processing. */
         $from_string = implode("\n", $from_lines);
@@ -37,7 +39,7 @@ class Text_Diff_Engine_xdiff {
          * xdiff output (which is in the "unified diff" format).
          *
          * Note that we don't have enough information to detect "changed"
-         * lines using this approach, so we can't add Text_Diff_Op_changed
+         * lines using this approach, so we can't add MartynBiz\Diff\Op\Changed
          * instances to the $edits array.  The result is still perfectly
          * valid, albeit a little less descriptive and efficient. */
         $edits = array();
@@ -47,15 +49,15 @@ class Text_Diff_Engine_xdiff {
             }
             switch ($line[0]) {
             case ' ':
-                $edits[] = &new Text_Diff_Op_copy(array(substr($line, 1)));
+                $edits[] = &new \MartynBiz\Diff\Op\Copy(array(substr($line, 1)));
                 break;
 
             case '+':
-                $edits[] = &new Text_Diff_Op_add(array(substr($line, 1)));
+                $edits[] = &new \MartynBiz\Diff\Op\Add(array(substr($line, 1)));
                 break;
 
             case '-':
-                $edits[] = &new Text_Diff_Op_delete(array(substr($line, 1)));
+                $edits[] = &new \MartynBiz\Diff\Op\Delete(array(substr($line, 1)));
                 break;
             }
         }

@@ -1,4 +1,5 @@
-<?php
+<?php namespace MartynBiz\Diff;
+
 /**
  * General API for generating and formatting diffs - the differences between
  * two sequences of strings.
@@ -17,8 +18,9 @@
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
-class Text_Diff {
 
+class Diff {
+    
     /**
      * Array of changes.
      *
@@ -35,7 +37,7 @@ class Text_Diff {
      *                           Normally an array of two arrays, each
      *                           containing the lines from a file.
      */
-    function Text_Diff($engine, $params)
+    function __construct($engine, $params)
     {
         // Backward compatibility workaround.
         if (!is_string($engine)) {
@@ -44,13 +46,16 @@ class Text_Diff {
         }
 
         if ($engine == 'auto') {
-            $engine = extension_loaded('xdiff') ? 'xdiff' : 'native';
+            $engine = extension_loaded('xdiff') ? 'Xdiff' : 'Native';
         } else {
             $engine = basename($engine);
         }
 
-        require_once 'Text/Diff/Engine/' . $engine . '.php';
-        $class = 'Text_Diff_Engine_' . $engine;
+        // require_once 'Text/Diff/Engine/' . $engine . '.php';
+        // $class = 'Text_Diff_Engine_' . $engine;
+        
+        $class = 'MartynBiz\\Diff\\Engine\\' . $engine;
+        
         $diff_engine = new $class();
 
         $this->_edits = call_user_func_array(array($diff_engine, 'diff'), $params);
@@ -76,8 +81,8 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_add') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if (is_a($edit, 'MartynBiz\\Diff\\Op\\Add') ||
+                is_a($edit, 'MartynBiz\\Diff\\Op\\Change')) {
                 $count += $edit->nfinal();
             }
         }
@@ -96,8 +101,8 @@ class Text_Diff {
     {
         $count = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_delete') ||
-                is_a($edit, 'Text_Diff_Op_change')) {
+            if (is_a($edit, 'MartynBiz\\Diff\\Op\\Delete') ||
+                is_a($edit, 'MartynBiz\\Diff\\Op\\Change')) {
                 $count += $edit->norig();
             }
         }
@@ -140,7 +145,7 @@ class Text_Diff {
     function isEmpty()
     {
         foreach ($this->_edits as $edit) {
-            if (!is_a($edit, 'Text_Diff_Op_copy')) {
+            if (!is_a($edit, 'MartynBiz\\Diff\\Op\\Copy')) {
                 return false;
             }
         }
@@ -158,7 +163,7 @@ class Text_Diff {
     {
         $lcs = 0;
         foreach ($this->_edits as $edit) {
-            if (is_a($edit, 'Text_Diff_Op_copy')) {
+            if (is_a($edit, 'MartynBiz\\Diff\\Op\\Copy')) {
                 $lcs += count($edit->orig);
             }
         }
@@ -281,173 +286,6 @@ class Text_Diff {
         }
 
         return true;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- */
-class Text_MappedDiff extends Text_Diff {
-
-    /**
-     * Computes a diff between sequences of strings.
-     *
-     * This can be used to compute things like case-insensitve diffs, or diffs
-     * which ignore changes in white-space.
-     *
-     * @param array $from_lines         An array of strings.
-     * @param array $to_lines           An array of strings.
-     * @param array $mapped_from_lines  This array should have the same size
-     *                                  number of elements as $from_lines.  The
-     *                                  elements in $mapped_from_lines and
-     *                                  $mapped_to_lines are what is actually
-     *                                  compared when computing the diff.
-     * @param array $mapped_to_lines    This array should have the same number
-     *                                  of elements as $to_lines.
-     */
-    function Text_MappedDiff($from_lines, $to_lines,
-                             $mapped_from_lines, $mapped_to_lines)
-    {
-        assert(count($from_lines) == count($mapped_from_lines));
-        assert(count($to_lines) == count($mapped_to_lines));
-
-        parent::Text_Diff($mapped_from_lines, $mapped_to_lines);
-
-        $xi = $yi = 0;
-        for ($i = 0; $i < count($this->_edits); $i++) {
-            $orig = &$this->_edits[$i]->orig;
-            if (is_array($orig)) {
-                $orig = array_slice($from_lines, $xi, count($orig));
-                $xi += count($orig);
-            }
-
-            $final = &$this->_edits[$i]->final;
-            if (is_array($final)) {
-                $final = array_slice($to_lines, $yi, count($final));
-                $yi += count($final);
-            }
-        }
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff_Op {
-
-    var $orig;
-    var $final;
-
-    function &reverse()
-    {
-        trigger_error('Abstract method', E_USER_ERROR);
-    }
-
-    function norig()
-    {
-        return $this->orig ? count($this->orig) : 0;
-    }
-
-    function nfinal()
-    {
-        return $this->final ? count($this->final) : 0;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff_Op_copy extends Text_Diff_Op {
-
-    function Text_Diff_Op_copy($orig, $final = false)
-    {
-        if (!is_array($final)) {
-            $final = $orig;
-        }
-        $this->orig = $orig;
-        $this->final = $final;
-    }
-
-    function &reverse()
-    {
-        $reverse = &new Text_Diff_Op_copy($this->final, $this->orig);
-        return $reverse;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff_Op_delete extends Text_Diff_Op {
-
-    function Text_Diff_Op_delete($lines)
-    {
-        $this->orig = $lines;
-        $this->final = false;
-    }
-
-    function &reverse()
-    {
-        $reverse = &new Text_Diff_Op_add($this->orig);
-        return $reverse;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff_Op_add extends Text_Diff_Op {
-
-    function Text_Diff_Op_add($lines)
-    {
-        $this->final = $lines;
-        $this->orig = false;
-    }
-
-    function &reverse()
-    {
-        $reverse = &new Text_Diff_Op_delete($this->final);
-        return $reverse;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff_Op_change extends Text_Diff_Op {
-
-    function Text_Diff_Op_change($orig, $final)
-    {
-        $this->orig = $orig;
-        $this->final = $final;
-    }
-
-    function &reverse()
-    {
-        $reverse = &new Text_Diff_Op_change($this->final, $this->orig);
-        return $reverse;
     }
 
 }

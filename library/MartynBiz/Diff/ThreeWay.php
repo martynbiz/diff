@@ -84,7 +84,7 @@ class Text_Diff_ThreeWay extends Text_Diff {
         $e1 = current($edits1);
         $e2 = current($edits2);
         while ($e1 || $e2) {
-            if ($e1 && $e2 && is_a($e1, 'Text_Diff_Op_copy') && is_a($e2, 'Text_Diff_Op_copy')) {
+            if ($e1 && $e2 && is_a($e1, 'MartynBiz\Diff\Op\Copy') && is_a($e2, 'MartynBiz\Diff\Op\Copy')) {
                 /* We have copy blocks from both diffs. This is the (only)
                  * time we want to emit a diff3 copy block.  Flush current
                  * diff3 diff block, if any. */
@@ -118,11 +118,11 @@ class Text_Diff_ThreeWay extends Text_Diff {
                         $bb->input($orig);
                     }
 
-                    if (is_a($e1, 'Text_Diff_Op_copy')) {
+                    if (is_a($e1, 'MartynBiz\Diff\Op\Copy')) {
                         $bb->out1(array_splice($e1->final, 0, $norig));
                     }
 
-                    if (is_a($e2, 'Text_Diff_Op_copy')) {
+                    if (is_a($e2, 'MartynBiz\Diff\Op\Copy')) {
                         $bb->out2(array_splice($e2->final, 0, $norig));
                     }
                 }

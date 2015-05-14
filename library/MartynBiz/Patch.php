@@ -1,6 +1,6 @@
-<?php
+<?php namespace MartynBiz\Diff;
 
-class Text_Patch
+class Patch
 {
     /**
      * Applies a diff to a string -- untested yo

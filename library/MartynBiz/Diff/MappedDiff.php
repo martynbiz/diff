@@ -3,17 +3,10 @@
 use MartynBiz\Diff;
 
 /**
- * $Horde: framework/Text_Diff/Diff/Mapped.php,v 1.3.2.4 2009/01/06 15:23:41 jan Exp $
- *
- * Copyright 2007-2009 The Horde Project (http://www.horde.org/)
- *
- * See the enclosed file COPYING for license information (LGPL). If you did
- * not receive this file, see http://opensource.org/licenses/lgpl-license.php.
- *
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
-class Mapped extends Diff {
+class MappedDiff extends Diff {
 
     /**
      * Computes a diff between sequences of strings.
@@ -32,7 +25,7 @@ class Mapped extends Diff {
      *                                  of elements as $to_lines.
      */
     function __construct($from_lines, $to_lines,
-                              $mapped_from_lines, $mapped_to_lines)
+                             $mapped_from_lines, $mapped_to_lines)
     {
         assert(count($from_lines) == count($mapped_from_lines));
         assert(count($to_lines) == count($mapped_to_lines));

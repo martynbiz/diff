@@ -1,4 +1,5 @@
-<?php
+<?php namespace MartynBiz\Diff\Engine;
+
 /**
  * Class used internally by Diff to actually compute the diffs.
  *
@@ -16,7 +17,7 @@
  * @package Text_Diff
  * @since   0.3.0
  */
-class Text_Diff_Engine_shell {
+class Shell {
 
     /**
      * Path to the diff executable
@@ -35,14 +36,14 @@ class Text_Diff_Engine_shell {
      */
     function diff($from_lines, $to_lines)
     {
-        array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
-        array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+        array_walk($from_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
+        array_walk($to_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
 
-        $temp_dir = Text_Diff::_getTempDir();
+        $temp_dir = MartynBiz\Diff::_getTempDir();
 
         // Execute gnu diff or similar to get a standard diff file.
-        $from_file = tempnam($temp_dir, 'Text_Diff');
-        $to_file = tempnam($temp_dir, 'Text_Diff');
+        $from_file = tempnam($temp_dir, 'MartynBiz\\Diff\\Diff');
+        $to_file = tempnam($temp_dir, 'MartynBiz\\Diff\\Diff');
         $fp = fopen($from_file, 'w');
         fwrite($fp, implode("\n", $from_lines));
         fclose($fp);
@@ -55,7 +56,7 @@ class Text_Diff_Engine_shell {
 
         if (is_null($diff)) {
             // No changes were made
-            return array(new Text_Diff_Op_copy($from_lines));
+            return array(new \MartynBiz\Diff\Op\Copy($from_lines));
         }
 
         $from_line_no = 1;
@@ -87,7 +88,7 @@ class Text_Diff_Engine_shell {
                 // copied lines
                 assert('$match[1] - $from_line_no == $match[4] - $to_line_no');
                 array_push($edits,
-                    new Text_Diff_Op_copy(
+                    new \MartynBiz\Diff\Op\Copy(
                         $this->_getLines($from_lines, $from_line_no, $match[1] - 1),
                         $this->_getLines($to_lines, $to_line_no, $match[4] - 1)));
             }
@@ -96,7 +97,7 @@ class Text_Diff_Engine_shell {
             case 'd':
                 // deleted lines
                 array_push($edits,
-                    new Text_Diff_Op_delete(
+                    new \MartynBiz\Diff\Op\Delete(
                         $this->_getLines($from_lines, $from_line_no, $match[2])));
                 $to_line_no++;
                 break;
@@ -104,7 +105,7 @@ class Text_Diff_Engine_shell {
             case 'c':
                 // changed lines
                 array_push($edits,
-                    new Text_Diff_Op_change(
+                    new \MartynBiz\Diff\Op\Change(
                         $this->_getLines($from_lines, $from_line_no, $match[2]),
                         $this->_getLines($to_lines, $to_line_no, $match[5])));
                 break;
@@ -112,7 +113,7 @@ class Text_Diff_Engine_shell {
             case 'a':
                 // added lines
                 array_push($edits,
-                    new Text_Diff_Op_add(
+                    new \MartynBiz\Diff\Op\Add(
                         $this->_getLines($to_lines, $to_line_no, $match[5])));
                 $from_line_no++;
                 break;
@@ -122,7 +123,7 @@ class Text_Diff_Engine_shell {
         if (!empty($from_lines)) {
             // Some lines might still be pending. Add them as copied
             array_push($edits,
-                new Text_Diff_Op_copy(
+                new \MartynBiz\Diff\Op\Copy(
                     $this->_getLines($from_lines, $from_line_no,
                                      $from_line_no + count($from_lines) - 1),
                     $this->_getLines($to_lines, $to_line_no,

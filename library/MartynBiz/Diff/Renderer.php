@@ -1,4 +1,7 @@
-<?php
+<?php namespace MartynBiz\Diff;
+
+use MartynBiz\Diff;
+
 /**
  * A class to render Diffs in different formats.
  *
@@ -14,7 +17,7 @@
  *
  * @package Text_Diff
  */
-class Text_Diff_Renderer {
+class Renderer {
 
     /**
      * Number of leading context "lines" to preserve.
@@ -35,7 +38,7 @@ class Text_Diff_Renderer {
     /**
      * Constructor.
      */
-    function Text_Diff_Renderer($params = array())
+    function __construct($params = array())
     {
         foreach ($params as $param => $value) {
             $v = '_' . $param;
@@ -85,7 +88,7 @@ class Text_Diff_Renderer {
             /* If these are unchanged (copied) lines, and we want to keep
              * leading or trailing context lines, extract them from the copy
              * block. */
-            if (is_a($edit, 'Text_Diff_Op_copy')) {
+            if (is_a($edit, 'MartynBiz\\Diff\\Op\\Copy')) {
                 /* Do we have any diff blocks yet? */
                 if (is_array($block)) {
                     /* How many lines to keep as context from the copy
@@ -100,7 +103,7 @@ class Text_Diff_Renderer {
                             /* Create a new block with as many lines as we need
                              * for the trailing context. */
                             $context = array_slice($edit->orig, 0, $ntrail);
-                            $block[] = new Text_Diff_Op_copy($context);
+                            $block[] = new \MartynBiz\Diff\Op\Copy($context);
                         }
                         /* @todo */
                         $output .= $this->_block($x0, $ntrail + $xi - $x0,
@@ -120,7 +123,7 @@ class Text_Diff_Renderer {
                     $y0 = $yi - count($context);
                     $block = array();
                     if ($context) {
-                        $block[] = new Text_Diff_Op_copy($context);
+                        $block[] = new \MartynBiz\Diff\Op\Copy($context);
                     }
                 }
                 $block[] = $edit;
@@ -148,20 +151,20 @@ class Text_Diff_Renderer {
         $output = $this->_startBlock($this->_blockHeader($xbeg, $xlen, $ybeg, $ylen));
 
         foreach ($edits as $edit) {
-            switch (strtolower(get_class($edit))) {
-            case 'text_diff_op_copy':
+            switch (get_class($edit)) {
+            case 'MartynBiz\\Diff\\Op\\Copy':
                 $output .= $this->_context($edit->orig);
                 break;
 
-            case 'text_diff_op_add':
+            case 'MartynBiz\\Diff\\Op\\Add':
                 $output .= $this->_added($edit->final);
                 break;
 
-            case 'text_diff_op_delete':
+            case 'MartynBiz\\Diff\\Op\\Delete':
                 $output .= $this->_deleted($edit->orig);
                 break;
 
-            case 'text_diff_op_change':
+            case 'MartynBiz\\Diff\\Op\\Change':
                 $output .= $this->_changed($edit->orig, $edit->final);
                 break;
             }

@@ -1,4 +1,5 @@
-<?php
+<?php namespace MartynBiz\Diff\Engine;
+
 /**
  * Class used internally by Text_Diff to actually compute the diffs.
  *
@@ -28,12 +29,13 @@
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  * @package Text_Diff
  */
-class Text_Diff_Engine_native {
+
+class Native {
 
     function diff($from_lines, $to_lines)
     {
-        array_walk($from_lines, array('Text_Diff', 'trimNewlines'));
-        array_walk($to_lines, array('Text_Diff', 'trimNewlines'));
+        array_walk($from_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
+        array_walk($to_lines, array('MartynBiz\\Diff\\Diff', 'trimNewlines'));
 
         $n_from = count($from_lines);
         $n_to = count($to_lines);
@@ -106,7 +108,7 @@ class Text_Diff_Engine_native {
                 ++$yi;
             }
             if ($copy) {
-                $edits[] = &new Text_Diff_Op_copy($copy);
+                $edits[] = &new \MartynBiz\Diff\Op\Copy($copy);
             }
 
             // Find deletes & adds.
@@ -121,11 +123,11 @@ class Text_Diff_Engine_native {
             }
 
             if ($delete && $add) {
-                $edits[] = &new Text_Diff_Op_change($delete, $add);
+                $edits[] = &new \MartynBiz\Diff\Op\Change($delete, $add);
             } elseif ($delete) {
-                $edits[] = &new Text_Diff_Op_delete($delete);
+                $edits[] = &new \MartynBiz\Diff\Op\Delete($delete);
             } elseif ($add) {
-                $edits[] = &new Text_Diff_Op_add($add);
+                $edits[] = &new \MartynBiz\Diff\Op\Add($add);
             }
         }
 

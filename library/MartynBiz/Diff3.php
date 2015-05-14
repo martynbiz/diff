@@ -1,4 +1,4 @@
-<?php
+<?php namespace MartynBiz\Diff;
 /**
  * A class for computing three way diffs.
  *
@@ -14,7 +14,7 @@
  */
 
 /** Text_Diff */
-require_once 'Text/Diff.php';
+// require_once 'Text/Diff.php';
 
 /**
  * A class for computing three way diffs.
@@ -22,7 +22,7 @@ require_once 'Text/Diff.php';
  * @package Text_Diff
  * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
  */
-class Text_Diff3 extends Text_Diff {
+class Diff3 extends Diff {
 
     /**
      * Conflict counter.
@@ -38,12 +38,12 @@ class Text_Diff3 extends Text_Diff {
      * @param array $final1  The first version to compare to.
      * @param array $final2  The second version to compare to.
      */
-    function Text_Diff3($orig, $final1, $final2)
+    function __construct($orig, $final1, $final2)
     {
         if (extension_loaded('xdiff')) {
-            $engine = new Text_Diff_Engine_xdiff();
+            $engine = new \MartynBiz\Diff\Engine\Xdiff();
         } else {
-            $engine = new Text_Diff_Engine_native();
+            $engine = new \MartynBiz\Diff\Engine\Native();
         }
 
         $this->_edits = $this->_diff3($engine->diff($orig, $final1),
@@ -79,12 +79,12 @@ class Text_Diff3 extends Text_Diff {
     function _diff3($edits1, $edits2)
     {
         $edits = array();
-        $bb = new Text_Diff3_BlockBuilder();
+        $bb = new \MartynBiz\Diff3\BlockBuilder();
 
         $e1 = current($edits1);
         $e2 = current($edits2);
         while ($e1 || $e2) {
-            if ($e1 && $e2 && is_a($e1, 'Text_Diff_Op_copy') && is_a($e2, 'Text_Diff_Op_copy')) {
+            if ($e1 && $e2 && is_a($e1, 'MartynBiz\Diff\Op\Copy') && is_a($e2, 'MartynBiz\Diff\Op\Copy')) {
                 /* We have copy blocks from both diffs. This is the (only)
                  * time we want to emit a diff3 copy block.  Flush current
                  * diff3 diff block, if any. */
@@ -94,7 +94,7 @@ class Text_Diff3 extends Text_Diff {
 
                 $ncopy = min($e1->norig(), $e2->norig());
                 assert($ncopy > 0);
-                $edits[] = new Text_Diff3_Op_copy(array_slice($e1->orig, 0, $ncopy));
+                $edits[] = new \MartynBiz\Diff3\Op\Copy(array_slice($e1->orig, 0, $ncopy));
 
                 if ($e1->norig() > $ncopy) {
                     array_splice($e1->orig, 0, $ncopy);
@@ -118,11 +118,11 @@ class Text_Diff3 extends Text_Diff {
                         $bb->input($orig);
                     }
 
-                    if (is_a($e1, 'Text_Diff_Op_copy')) {
+                    if (is_a($e1, 'MartynBiz\Diff\Op\Copy')) {
                         $bb->out1(array_splice($e1->final, 0, $norig));
                     }
 
-                    if (is_a($e2, 'Text_Diff_Op_copy')) {
+                    if (is_a($e2, 'MartynBiz\Diff\Op\Copy')) {
                         $bb->out2(array_splice($e2->final, 0, $norig));
                     }
                 }
@@ -143,134 +143,6 @@ class Text_Diff3 extends Text_Diff {
         }
 
         return $edits;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff3_Op {
-
-    function Text_Diff3_Op($orig = false, $final1 = false, $final2 = false)
-    {
-        $this->orig = $orig ? $orig : array();
-        $this->final1 = $final1 ? $final1 : array();
-        $this->final2 = $final2 ? $final2 : array();
-    }
-
-    function merged()
-    {
-        if (!isset($this->_merged)) {
-            if ($this->final1 === $this->final2) {
-                $this->_merged = &$this->final1;
-            } elseif ($this->final1 === $this->orig) {
-                $this->_merged = &$this->final2;
-            } elseif ($this->final2 === $this->orig) {
-                $this->_merged = &$this->final1;
-            } else {
-                $this->_merged = false;
-            }
-        }
-
-        return $this->_merged;
-    }
-
-    function isConflict()
-    {
-        return $this->merged() === false;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff3_Op_copy extends Text_Diff3_Op {
-
-    function Text_Diff3_Op_Copy($lines = false)
-    {
-        $this->orig = $lines ? $lines : array();
-        $this->final1 = &$this->orig;
-        $this->final2 = &$this->orig;
-    }
-
-    function merged()
-    {
-        return $this->orig;
-    }
-
-    function isConflict()
-    {
-        return false;
-    }
-
-}
-
-/**
- * @package Text_Diff
- * @author  Geoffrey T. Dairiki <dairiki@dairiki.org>
- *
- * @access private
- */
-class Text_Diff3_BlockBuilder {
-
-    function Text_Diff3_BlockBuilder()
-    {
-        $this->_init();
-    }
-
-    function input($lines)
-    {
-        if ($lines) {
-            $this->_append($this->orig, $lines);
-        }
-    }
-
-    function out1($lines)
-    {
-        if ($lines) {
-            $this->_append($this->final1, $lines);
-        }
-    }
-
-    function out2($lines)
-    {
-        if ($lines) {
-            $this->_append($this->final2, $lines);
-        }
-    }
-
-    function isEmpty()
-    {
-        return !$this->orig && !$this->final1 && !$this->final2;
-    }
-
-    function finish()
-    {
-        if ($this->isEmpty()) {
-            return false;
-        } else {
-            $edit = new Text_Diff3_Op($this->orig, $this->final1, $this->final2);
-            $this->_init();
-            return $edit;
-        }
-    }
-
-    function _init()
-    {
-        $this->orig = $this->final1 = $this->final2 = array();
-    }
-
-    function _append(&$array, $lines)
-    {
-        array_splice($array, sizeof($array), 0, $lines);
     }
 
 }
