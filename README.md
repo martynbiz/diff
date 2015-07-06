@@ -7,10 +7,13 @@ but I added 5.3+ namespacing and intend to include a patch method.
 
 ##Installation##
 
+```
 composer require martynbiz/diff
+```
 
 ##Usage##
 
+```
 // code to highlight the difference between strings
 $a_lines = explode("\n", $a);
 $b_lines = explode("\n", $b);
@@ -21,4 +24,5 @@ $check_diff = new \MartynBiz\Diff\Diff( 'auto', array($a_lines, $b_lines) );
 // $renderer = new \MartynBiz\Diff\Renderer\Unified();
 $renderer = new \MartynBiz\Diff\Renderer\Inline();
 
-return $renderer->render($check_diff);
+$diff = $renderer->render($check_diff);
+```
